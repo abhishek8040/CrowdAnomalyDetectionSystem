@@ -1,0 +1,403 @@
+# Crowd Anomaly Detection System
+
+A production-ready end-to-end system for detecting people in CCTV-like video, counting them, tracking them, and detecting various anomalies including overcrowding, zone violations, loitering, and suspicious movements (fight-like anomalies).
+
+![System Architecture](https://img.shields.io/badge/Architecture-Microservices-blue)
+![Python](https://img.shields.io/badge/Python-3.10-green)
+![React](https://img.shields.io/badge/React-18.2-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.104-teal)
+
+## 🎯 Features
+
+### Core Detection Capabilities
+- **Person Detection**: YOLOv8-based real-time person detection
+- **Multi-Object Tracking**: DeepSORT algorithm for robust tracking across frames
+- **Crowd Counting**: Accurate people counting with real-time updates
+- **Anomaly Detection**:
+  - 👥 **Overcrowding**: Detects when crowd exceeds threshold
+  - ⏱️ **Loitering**: Identifies people staying in one area too long
+  - 🚫 **Zone Violations**: Alerts when restricted areas are entered
+  - ⚠️ **Suspicious Activity**: Detects fight-like movements using pose estimation
+
+### System Features
+- Real-time WebSocket streaming for live alerts
+- Batch video analysis with detailed reports
+- Interactive zone drawing for restricted areas
+- Configurable thresholds and parameters
+- Event history and replay
+- RESTful API with comprehensive documentation
+- Docker containerization for easy deployment
+
+## 📁 Project Structure
+
+```
+crowd-anomaly-detection-system/
+├── backend/
+│   ├── models/
+│   │   ├── __init__.py
+│   │   └── detector.py          # YOLOv8 person detector
+│   ├── tracking/
+│   │   ├── __init__.py
+│   │   └── deepsort.py          # DeepSORT tracker implementation
+│   ├── anomaly/
+│   │   ├── __init__.py
+│   │   ├── overcrowding.py      # Overcrowding detection
+│   │   ├── loitering.py         # Loitering detection
+│   │   ├── zone_violation.py    # Restricted zone monitoring
+│   │   └── suspicious_activity.py # Fight detection via pose
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   └── video_stream.py      # Video I/O utilities
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   ├── analyze.py           # Video analysis endpoint
+│   │   └── stream.py            # WebSocket streaming
+│   ├── main.py                  # FastAPI application
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── VideoPlayer.jsx
+│   │   │   ├── BoxesOverlay.jsx
+│   │   │   ├── ZoneDrawer.jsx
+│   │   │   └── AlertPanel.jsx
+│   │   ├── pages/
+│   │   │   ├── Dashboard.jsx
+│   │   │   └── Events.jsx
+│   │   ├── hooks/
+│   │   │   └── useWebSocket.js
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   ├── package.json
+│   ├── vite.config.js
+│   └── index.html
+├── notebooks/
+│   └── dataset_experiments.ipynb
+├── scripts/
+│   └── eval_metrics.py
+├── Dockerfile.backend
+├── Dockerfile.frontend
+├── docker-compose.yml
+└── README.md
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Docker & Docker Compose (recommended)
+- OR Python 3.10+ and Node.js 18+
+
+### Option 1: Docker (Recommended)
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd crowd-anomaly-detection-system
+
+# Build and run with Docker Compose
+docker-compose up --build
+
+# Access the application
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:8000
+# API Docs: http://localhost:8000/docs
+```
+
+### Option 2: Local Development
+
+#### Backend Setup
+
+```bash
+cd backend
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the backend server
+python main.py
+# or
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+#### Frontend Setup
+
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+## 📖 Usage
+
+### 1. Video Upload & Analysis
+
+1. Navigate to the Dashboard at `http://localhost:3000`
+2. Click "Choose video file..." to select a video
+3. Configure detection parameters:
+   - **Overcrowding Threshold**: Maximum number of people allowed
+   - **Loitering Time**: Seconds before flagging loitering
+   - **Loitering Distance**: Maximum movement radius (pixels)
+   - **Velocity Threshold**: Sensitivity for suspicious movement detection
+4. Define restricted zones by clicking "Draw New Zone"
+5. Click "Start Analysis" to process the video
+6. View results in the Analysis Summary section
+
+### 2. Real-time Monitoring
+
+The system automatically connects to the WebSocket stream and displays:
+- Live detection count
+- Real-time alerts in the Alert Panel
+- Connection status indicator
+
+### 3. Event History
+
+Navigate to the Events page to:
+- View all detected anomalies
+- Filter by event type
+- Review event details and snapshots
+- Analyze patterns over time
+
+## 🔧 Configuration
+
+### Backend Configuration
+
+Edit `backend/main.py` or send config via API:
+
+```python
+# Default thresholds
+OVERCROWDING_THRESHOLD = 10
+LOITERING_TIME = 300  # seconds
+LOITERING_DISTANCE = 50.0  # pixels
+VELOCITY_THRESHOLD = 15.0
+```
+
+### API Endpoints
+
+- `POST /api/analyze/upload` - Upload and analyze video
+- `GET /api/stream/ws` - WebSocket for real-time streaming
+- `GET /health` - Health check
+- `GET /config` - Get current configuration
+- `POST /config/zones` - Update restricted zones
+
+Full API documentation available at `http://localhost:8000/docs`
+
+## 🎓 Datasets
+
+### Recommended Datasets for Training/Testing
+
+1. **UCSD Pedestrian Dataset**
+   - Anomaly detection in pedestrian areas
+   - http://www.svcl.ucsd.edu/projects/anomaly/dataset.htm
+
+2. **ShanghaiTech Dataset**
+   - Crowd counting and density estimation
+   - https://github.com/desenzhou/ShanghaiTechDataset
+
+3. **UCF-Crime Dataset**
+   - Real-world anomaly detection
+   - https://www.crcv.ucf.edu/projects/real-world/
+
+4. **CUHK Avenue Dataset**
+   - Abnormal event detection
+   - http://www.cse.cuhk.edu.hk/leojia/projects/detectabnormal/dataset.html
+
+5. **MOT Challenge**
+   - Multi-object tracking benchmarks
+   - https://motchallenge.net/
+
+## 🧠 Anomaly Detection Logic
+
+### 1. Overcrowding Detection
+```python
+# Triggered when person count exceeds threshold
+if current_count > threshold:
+    alert_overcrowding()
+```
+
+### 2. Loitering Detection
+```python
+# Tracks position history for each person
+# Alerts if movement < pixel_threshold for time_threshold seconds
+max_displacement = calculate_displacement(track_history)
+if max_displacement < pixel_threshold and duration > time_threshold:
+    alert_loitering()
+```
+
+### 3. Zone Violation
+```python
+# Uses point-in-polygon algorithm
+# Checks if person's center point is inside restricted zone
+if point_in_polygon(person_center, restricted_zone):
+    alert_zone_violation()
+```
+
+### 4. Suspicious Activity (Fight Detection)
+```python
+# Uses MediaPipe pose estimation
+# Analyzes joint velocities for rapid, erratic movements
+keypoints = extract_pose(person_bbox)
+velocity = calculate_joint_velocity(keypoints_sequence)
+if velocity > threshold and is_erratic_pattern(velocity):
+    alert_suspicious_activity()
+```
+
+## 📊 Evaluation Metrics
+
+Use the provided evaluation script to measure system performance:
+
+```bash
+cd scripts
+python eval_metrics.py \
+    --predictions predictions.json \
+    --ground_truth ground_truth.json \
+    --output results.json
+```
+
+**Computed Metrics:**
+- **Detection**: Precision, Recall, F1-score
+- **Counting**: MAE (Mean Absolute Error), MSE, RMSE
+- **Anomaly Detection**: Event-level precision, recall, F1
+
+## 🏗️ Architecture
+
+### Backend Architecture
+```
+FastAPI Server
+├── Detection Module (YOLOv8)
+├── Tracking Module (DeepSORT)
+├── Anomaly Detectors
+│   ├── Overcrowding
+│   ├── Loitering
+│   ├── Zone Violation
+│   └── Suspicious Activity
+└── WebSocket Manager
+```
+
+### Frontend Architecture
+```
+React Application
+├── Dashboard Page
+│   ├── Video Upload
+│   ├── Configuration Panel
+│   ├── Zone Drawer
+│   └── Stats Display
+├── Events Page
+│   ├── Event List
+│   └── Event Details
+└── WebSocket Hook
+```
+
+## 🔬 Technology Stack
+
+### Backend
+- **Framework**: FastAPI
+- **Detection**: YOLOv8 (Ultralytics)
+- **Tracking**: DeepSORT (FilterPy)
+- **Pose**: MediaPipe
+- **Computer Vision**: OpenCV
+- **Scientific Computing**: NumPy, SciPy
+- **Geometry**: Shapely
+
+### Frontend
+- **Framework**: React 18
+- **Build Tool**: Vite
+- **Routing**: React Router
+- **HTTP Client**: Axios
+- **Charts**: Recharts
+- **WebSocket**: Native WebSocket API
+
+### DevOps
+- **Containerization**: Docker
+- **Orchestration**: Docker Compose
+- **API Documentation**: FastAPI Swagger
+
+## 🧪 Testing
+
+### Backend Tests
+```bash
+cd backend
+pytest tests/
+```
+
+### Frontend Tests
+```bash
+cd frontend
+npm test
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**1. YOLO Model Download**
+- First run will download YOLOv8 models (~6MB for yolov8n)
+- Ensure internet connection on first startup
+
+**2. WebSocket Connection Failed**
+- Check if backend is running on port 8000
+- Verify CORS settings in `backend/main.py`
+
+**3. Video Processing Slow**
+- Try using smaller YOLOv8 variant (yolov8n)
+- Reduce video resolution
+- Process fewer frames (skip frames)
+
+**4. High Memory Usage**
+- Limit track history length
+- Clear old tracks periodically
+- Use video streaming instead of loading entire video
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- **YOLOv8**: Ultralytics for state-of-the-art object detection
+- **DeepSORT**: Nicolai Wojke for the tracking algorithm
+- **MediaPipe**: Google for pose estimation
+- **FastAPI**: Sebastián Ramírez for the amazing web framework
+- **React**: Meta for the UI library
+
+## 📧 Contact
+
+For questions, issues, or contributions, please open an issue on GitHub.
+
+## 🗺️ Roadmap
+
+- [ ] Add MongoDB integration for event persistence
+- [ ] Implement RTSP stream support
+- [ ] Add multi-camera support
+- [ ] Enhance UI with 3D visualization
+- [ ] Add email/SMS alert notifications
+- [ ] Implement advanced analytics dashboard
+- [ ] Add model fine-tuning capabilities
+- [ ] Support for custom anomaly types
+- [ ] Mobile application
+- [ ] Cloud deployment guides (AWS, Azure, GCP)
+
+---
+
+**Built with ❤️ for safer and smarter crowd monitoring**

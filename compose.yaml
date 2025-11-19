@@ -1,0 +1,33 @@
+services:
+  python-backend:
+    build:
+      context: ./backend
+      dockerfile: ../Dockerfile.backend
+    restart: unless-stopped
+    init: true
+    # env_file: ./backend/.env  # Uncomment if .env file exists
+    networks:
+      - appnet
+    depends_on:
+      - frontend
+    # Expose backend port if specified in README or code (not found), otherwise default is not exposed
+    # ports:
+    #   - "8000:8000"  # Uncomment and adjust if backend serves on a port
+
+  javascript-frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../Dockerfile.frontend
+    restart: unless-stopped
+    init: true
+    # env_file: ./frontend/.env  # Uncomment if .env file exists
+    networks:
+      - appnet
+    ports:
+      - "4173:4173"  # Vite preview port exposed by Dockerfile
+      - "3000:3000"  # Also exposed by Dockerfile, for dev server if needed
+    # If you only want to expose one port, comment out the other
+
+networks:
+  appnet:
+    driver: bridge

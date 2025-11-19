@@ -1,0 +1,103 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║        🎯 CROWD ANOMALY DETECTION SYSTEM - QUICK START CARD         ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+✅ SETUP COMPLETE! All dependencies are installed.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 CURRENT STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Backend:  Running on http://localhost:8000
+✅ Frontend: Running on http://localhost:3000
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 HOW TO USE RIGHT NOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Open your browser and go to:
+   👉 http://localhost:3000
+
+2. On the webpage, you will see:
+   - Dashboard with tabs/sections
+   - "Upload Video" or "Analyze" button
+   
+3. Click "Upload Video" or "Choose File" button
+
+4. Select a video file (MP4, AVI, MOV) from your computer
+   - Best: 10-30 seconds video with people/crowds
+   - Example: CCTV footage, crowd videos, public space videos
+
+5. Click "Analyze" or "Start Analysis" button
+
+6. Wait for processing (progress bar will show)
+
+7. View results:
+   - People detected
+   - Anomalies found
+   - Crowd density
+   - Timeline of events
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📹 WHERE TO GET TEST VIDEOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Free Stock Video Sites:
+• Pexels: https://www.pexels.com/search/videos/crowd/
+• Pixabay: https://pixabay.com/videos/search/crowd/
+• YouTube: Search "CCTV crowd footage" (download using tools)
+
+Or:
+• Record a short video with your phone showing people walking
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔧 IF SOMETHING GOES WRONG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problem: Can't access http://localhost:3000
+Solution: The servers might have stopped. Restart them:
+  cd /Users/abhishekdubey/Documents/PublicAnamoly
+  ./start.sh
+
+Problem: 500 Error when uploading video
+Solution: 
+  • Make sure video is MP4 format
+  • Try a smaller video (under 50MB)
+  • Check if backend is running (http://localhost:8000/docs)
+
+Problem: Frontend shows "Cannot connect to backend"
+Solution: Make sure backend is running on port 8000
+  curl http://localhost:8000/health
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ QUICK COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Start Application:
+  cd /Users/abhishekdubey/Documents/PublicAnamoly && ./start.sh
+
+Stop Application:
+  Press Ctrl+C in the terminal
+
+Check Backend Status:
+  curl http://localhost:8000/health
+
+View API Documentation:
+  Open http://localhost:8000/docs in browser
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Full Guide: STEP_BY_STEP_GUIDE.md
+README: README.md
+Getting Started: GETTING_STARTED.md
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 TIP: The first time you analyze a video, it might take a bit longer
+         because the AI model needs to initialize. Be patient!
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  YOU'RE ALL SET! Just open http://localhost:3000 and start testing! ║
+╚══════════════════════════════════════════════════════════════════════╝

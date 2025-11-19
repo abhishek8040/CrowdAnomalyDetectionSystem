@@ -1,0 +1,182 @@
+.events-page {
+  width: 100%;
+}
+
+.events-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.events-header h1 {
+  color: #4dabf7;
+}
+
+.filter-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.filter-section label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.filter-select {
+  padding: 0.5rem 1rem;
+  background: #1a1a2e;
+  border: 1px solid #2a5298;
+  border-radius: 4px;
+  color: white;
+  font-size: 1rem;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #4dabf7;
+}
+
+.events-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 800px;
+  overflow-y: auto;
+}
+
+.no-events {
+  text-align: center;
+  padding: 3rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.event-card {
+  background: #1a1a2e;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.event-card:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.event-card.selected {
+  border-color: #4dabf7;
+  background: #252540;
+}
+
+.event-danger {
+  border-color: #f44336;
+}
+
+.event-warning {
+  border-color: #ffc107;
+}
+
+.event-info {
+  border-color: #2196f3;
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.event-type {
+  font-weight: 600;
+  color: #4dabf7;
+}
+
+.event-time {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.event-info {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.event-detail {
+  background: #1a1a2e;
+  padding: 1.5rem;
+  border-radius: 8px;
+  max-height: 800px;
+  overflow-y: auto;
+}
+
+.event-detail h2 {
+  color: #4dabf7;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #2a5298;
+  padding-bottom: 0.5rem;
+}
+
+.detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: #0f0f23;
+  border-radius: 4px;
+}
+
+.detail-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.detail-value {
+  color: #4dabf7;
+}
+
+.detail-section {
+  margin-top: 1rem;
+}
+
+.detail-section h3 {
+  color: #4dabf7;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.detail-json {
+  background: #0f0f23;
+  padding: 1rem;
+  border-radius: 4px;
+  color: #4dabf7;
+  font-size: 0.9rem;
+  overflow-x: auto;
+}
+
+.event-snapshot {
+  width: 100%;
+  border-radius: 4px;
+  border: 2px solid #2a5298;
+}
+
+@media (max-width: 1024px) {
+  .events-grid {
+    grid-template-columns: 1fr;
+  }
+}

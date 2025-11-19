@@ -1,0 +1,82 @@
+# === General VCS and OS files ===
+.git/
+.gitignore
+.svn/
+.hg/
+.DS_Store
+
+# === Python ===
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+
+# === Node.js / JavaScript ===
+node_modules/
+npm-debug.log
+yarn-debug.log
+
+# === IDEs and Editors ===
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# === Build and Output ===
+dist/
+build/
+out/
+tmp/
+temp/
+*.tmp
+
+# === Test and Debug ===
+test/
+tests/
+*_test.go
+debug/
+*.log
+
+# === Environment and Secrets ===
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.crt
+config.local.*
+*.local.yml
+
+# === Documentation and Markdown ===
+docs/
+*.md
+README*
+LICENSE
+GETTING_STARTED.md
+PROJECT_SUMMARY.md
+
+# === Docker and Compose files ===
+Dockerfile*
+docker-compose*
+
+# === Project-specific ===
+notebooks/
+local/
+.local/
+
+# === Miscellaneous ===
+*.example
+
+# === Exclude frontend and backend specific files ===
+frontend/.env
+frontend/.env.*
+frontend/.env.example
+backend/.env
+backend/.env.*
+backend/.env.example
+backend/.DS_Store
+frontend/.DS_Store
+
+# === Exclude any other OS or temp files ===
+Thumbs.db
