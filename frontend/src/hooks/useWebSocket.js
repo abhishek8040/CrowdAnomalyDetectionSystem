@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
-const useWebSocket = (url) => {
+const useWebSocket = (url, { maxBuffer = 200 } = {}) => {
   const [messages, setMessages] = useState([])
+  const [lastMessage, setLastMessage] = useState(null)
   const [isConnected, setIsConnected] = useState(false)
   const ws = useRef(null)
   const reconnectTimeout = useRef(null)
@@ -25,7 +26,15 @@ const useWebSocket = (url) => {
       ws.current.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data)
-          setMessages((prev) => [...prev, data])
+          setLastMessage(data)
+          setMessages((prev) => {
+            const next = [...prev, data]
+            // Cap buffer to prevent unbounded growth causing freezes
+            if (next.length > maxBuffer) {
+              return next.slice(next.length - maxBuffer)
+            }
+            return next
+          })
         } catch (error) {
           console.error('Failed to parse WebSocket message:', error)
         }
@@ -76,7 +85,7 @@ const useWebSocket = (url) => {
     }
   }, [])
 
-  return { messages, sendMessage, isConnected }
+  return { messages, lastMessage, sendMessage, isConnected }
 }
 
 export default useWebSocket

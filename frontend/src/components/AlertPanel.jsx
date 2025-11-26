@@ -3,9 +3,21 @@ import './AlertPanel.css'
 
 const AlertPanel = ({ alerts, maxAlerts = 10 }) => {
   const [displayAlerts, setDisplayAlerts] = useState([])
+  const [audio] = useState(() => {
+    const a = new Audio()
+    // gentle weep tone; user can replace with custom file in /frontend/public
+    a.src = '/weep.mp3'
+    a.loop = false
+    a.volume = 0.4
+    return a
+  })
 
   useEffect(() => {
     setDisplayAlerts(alerts.slice(-maxAlerts).reverse())
+    const last = alerts[alerts.length - 1]
+    if (last && last.event_type === 'suspicious_activity') {
+      try { audio.currentTime = 0; audio.play() } catch (_) {}
+    }
   }, [alerts, maxAlerts])
 
   const getAlertClass = (eventType) => {
@@ -67,6 +79,9 @@ const AlertPanel = ({ alerts, maxAlerts = 10 }) => {
                   <>
                     {alert.details.track_id && ` | ID: ${alert.details.track_id}`}
                     {alert.details.current_count && ` | Count: ${alert.details.current_count}`}
+                    {alert.event_type === 'suspicious_activity' && alert.details.subtype && ` | Type: ${formatEventType(alert.details.subtype)}`}
+                    {alert.event_type === 'suspicious_activity' && typeof alert.details.nearest_distance === 'number' && ` | Nearest: ${Math.round(alert.details.nearest_distance)}px`}
+                    {alert.event_type === 'suspicious_activity' && typeof alert.details.arm_velocity === 'number' && ` | Arm v: ${alert.details.arm_velocity.toFixed(1)}`}
                   </>
                 )}
               </div>

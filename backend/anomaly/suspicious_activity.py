@@ -73,10 +73,15 @@ class SuspiciousActivityDetector:
         results = self.pose.process(person_rgb)
         
         if results.pose_landmarks:
-            # Extract keypoints
+            # Extract keypoints and convert to pixel coordinates in original frame space
             keypoints = []
+            crop_w = max(1, x2 - x1)
+            crop_h = max(1, y2 - y1)
             for landmark in results.pose_landmarks.landmark:
-                keypoints.append([landmark.x, landmark.y, landmark.visibility])
+                # landmark.x/y are normalized [0,1] within the crop
+                x_px = x1 + float(landmark.x) * crop_w
+                y_px = y1 + float(landmark.y) * crop_h
+                keypoints.append([x_px, y_px, float(landmark.visibility)])
             return np.array(keypoints)
         
         return None
@@ -130,21 +135,24 @@ class SuspiciousActivityDetector:
         velocities = self._calculate_joint_velocities(keypoints_sequence[-self.min_frames:])
         
         # Analyze for suspicious patterns
-        max_velocity = np.max(velocities) if len(velocities) > 0 else 0
-        mean_velocity = np.mean(velocities) if len(velocities) > 0 else 0
-        
-        # Check for rapid, erratic movements (indicative of fights)
-        is_suspicious = max_velocity > active_threshold and mean_velocity > active_threshold * 0.5
+        max_velocity = np.max(velocities) if len(velocities) > 0 else 0.0
+        mean_velocity = np.mean(velocities) if len(velocities) > 0 else 0.0
+
+        # Fraction of joint transitions exceeding threshold
+        frac_exceed = float(np.mean(velocities > active_threshold)) if len(velocities) > 0 else 0.0
         
         # Check for specific joint movements (arms)
         arm_indices = [11, 12, 13, 14, 15, 16]  # Shoulders, elbows, wrists
         arm_velocities = self._calculate_specific_joint_velocities(
             keypoints_sequence[-self.min_frames:], arm_indices
         )
-        arm_velocity = np.mean(arm_velocities) if len(arm_velocities) > 0 else 0
-        
-        # Enhanced detection with arm movement
-        is_suspicious = is_suspicious or arm_velocity > active_threshold * 1.2
+        arm_velocity = float(np.mean(arm_velocities)) if len(arm_velocities) > 0 else 0.0
+
+        # Stricter detection combining magnitude and spread across joints
+        # Require both high max and sufficient fraction of joints exceeding threshold
+        is_suspicious = (max_velocity > active_threshold * 1.2 and
+                 mean_velocity > active_threshold * 0.6 and
+                 frac_exceed >= 0.25) or (arm_velocity > active_threshold * 1.4 and frac_exceed >= 0.2)
         
         # Track alerts
         alert_triggered = False
@@ -162,6 +170,7 @@ class SuspiciousActivityDetector:
             'max_velocity': float(max_velocity),
             'mean_velocity': float(mean_velocity),
             'arm_velocity': float(arm_velocity),
+            'frac_exceed': float(frac_exceed),
             'frames_analyzed': len(keypoints_sequence),
             'alert_triggered': alert_triggered,
             'activity_type': 'fight_like' if is_suspicious else 'normal'

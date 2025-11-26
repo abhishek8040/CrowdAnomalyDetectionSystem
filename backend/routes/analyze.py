@@ -43,6 +43,23 @@ class AnalysisResult(BaseModel):
     total_frames: int
     events: List[EventModel]
     summary: Dict
+def _to_py(obj):
+    """Recursively convert numpy types to native Python types for JSON serialization."""
+    if isinstance(obj, dict):
+        return {k: _to_py(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [
+            _to_py(x) for x in obj
+        ]
+    # Scalars
+    if isinstance(obj, (np.bool_,)):
+        return bool(obj)
+    if isinstance(obj, (np.integer,)):
+        return int(obj)
+    if isinstance(obj, (np.floating,)):
+        return float(obj)
+    return obj
+
 
 
 @router.post("/upload", response_model=AnalysisResult)
@@ -73,14 +90,21 @@ async def analyze_video(
         logger.warning(f"Invalid config, using defaults: {e}")
         analysis_config = AnalysisConfig()
     
-    # Save uploaded file temporarily
+    # Save uploaded file temporarily (streamed to avoid large memory usage)
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
     try:
-        content = await video.read()
-        if not content or len(content) < 1024:  # arbitrary minimal size check
-            raise HTTPException(status_code=400, detail="Uploaded file is empty or too small to be a valid video.")
-        temp_file.write(content)
+        size = 0
+        chunk_size = 1024 * 1024  # 1MB
+        while True:
+            chunk = await video.read(chunk_size)
+            if not chunk:
+                break
+            temp_file.write(chunk)
+            size += len(chunk)
+        temp_file.flush()
         temp_file.close()
+        if size < 1024:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty or too small to be a valid video.")
 
         # Initialize or reuse heavy components
         if app_state.get('detector') is None:
@@ -141,7 +165,7 @@ async def analyze_video(
                     event_type="overcrowding",
                     timestamp=datetime.now().isoformat(),
                     frame_number=frame_num,
-                    details=overcrowd_result,
+                    details=_to_py(overcrowd_result),
                     snapshot=_encode_frame(frame)
                 )
                 events.append(event)
@@ -168,7 +192,7 @@ async def analyze_video(
                         event_type="loitering",
                         timestamp=datetime.now().isoformat(),
                         frame_number=frame_num,
-                        details=loiter_result,
+                        details=_to_py(loiter_result),
                         snapshot=_encode_frame(frame)
                     )
                     events.append(event)
@@ -180,7 +204,7 @@ async def analyze_video(
                         event_type="zone_violation",
                         timestamp=datetime.now().isoformat(),
                         frame_number=frame_num,
-                        details=zone_result,
+                        details=_to_py(zone_result),
                         snapshot=_encode_frame(frame)
                     )
                     events.append(event)
@@ -198,7 +222,7 @@ async def analyze_video(
                                 event_type="suspicious_activity",
                                 timestamp=datetime.now().isoformat(),
                                 frame_number=frame_num,
-                                details=activity_result,
+                                details=_to_py(activity_result),
                                 snapshot=_encode_frame(frame)
                             )
                             events.append(event)

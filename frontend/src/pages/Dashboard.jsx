@@ -3,6 +3,8 @@ import axios from 'axios'
 import useWebSocket from '../hooks/useWebSocket'
 import AlertPanel from '../components/AlertPanel'
 import ZoneDrawer from '../components/ZoneDrawer'
+import { useRef } from 'react'
+import LiveMjpegPlayer from '../components/LiveMjpegPlayer'
 import './Dashboard.css'
 
 const Dashboard = () => {
@@ -19,33 +21,67 @@ const Dashboard = () => {
     restricted_zones: [],
   })
   const [alerts, setAlerts] = useState([])
+  const [lastAlert, setLastAlert] = useState(null)
   const [stats, setStats] = useState({
     totalDetections: 0,
     totalAlerts: 0,
     currentCount: 0,
   })
+  const [liveSource, setLiveSource] = useState('')
+  const [liveRunning, setLiveRunning] = useState(false)
+  const [liveFrame, setLiveFrame] = useState({ src: null, width: 800, height: 600 })
+  const [previewInterval, setPreviewInterval] = useState(10) // send every Nth frame
+  const [useMjpeg, setUseMjpeg] = useState(true)
+  const zoneRef = useRef(null)
 
   const wsUrl = (API_BASE.replace(/^http/, 'ws') + '/api/stream/ws').replace(/([^:])\/\//g, '$1//')
-  const { messages, sendMessage, isConnected } = useWebSocket(wsUrl)
+  const { messages, lastMessage, sendMessage, isConnected } = useWebSocket(wsUrl, { maxBuffer: 200 })
 
   useEffect(() => {
-    // Process WebSocket messages
-    messages.forEach((msg) => {
+    // Process only the latest WebSocket message
+    const msg = lastMessage
+    if (!msg) return
       if (msg.type === 'alert') {
         setAlerts((prev) => [...prev, msg])
+        setLastAlert(msg)
         setStats((prev) => ({
           ...prev,
           totalAlerts: prev.totalAlerts + 1,
         }))
+        console.log('UI received alert:', msg.event_type, msg.details)
       } else if (msg.type === 'detection') {
         setStats((prev) => ({
           ...prev,
           totalDetections: prev.totalDetections + msg.count,
           currentCount: msg.count,
         }))
+        // no-op UI logs for detection bursts; keep lightweight
+      } else if (msg.type === 'live_started') {
+        setLiveRunning(true)
+      } else if (msg.type === 'live_stopped') {
+        setLiveRunning(false)
+      } else if (msg.type === 'stream_info') {
+        if (msg.width && msg.height) {
+          setLiveFrame((prev) => ({ ...prev, width: msg.width, height: msg.height }))
+        }
+      } else if (msg.type === 'frame') {
+        if (msg.image) {
+          const dataUrl = msg.image.startsWith('data:') ? msg.image : `data:image/jpeg;base64,${msg.image}`
+          setLiveFrame({ src: dataUrl, width: msg.width || liveFrame.width, height: msg.height || liveFrame.height })
+        }
+      } else if (msg.type === 'error') {
+        alert('Live stream error: ' + (msg.message || 'Unknown error'))
       }
-    })
-  }, [messages])
+  }, [lastMessage])
+
+  // When zones change during live, push config update to backend
+  useEffect(() => {
+    if (liveRunning && isConnected) {
+      try {
+        sendMessage({ command: 'update_config', config })
+      } catch (_) {}
+    }
+  }, [config.restricted_zones])
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
@@ -75,10 +111,10 @@ const Dashboard = () => {
 
     try {
       const response = await axios.post(`${API_BASE}/api/analyze/upload`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        // Let the browser set proper multipart boundary
         timeout: 600000, // 10 minutes
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
       })
 
       setAnalysisResult(response.data)
@@ -93,6 +129,31 @@ const Dashboard = () => {
       alert('Analysis failed: ' + (error.response?.data?.detail || error.message))
     } finally {
       setIsAnalyzing(false)
+    }
+  }
+
+  const startLive = () => {
+    if (!liveSource) {
+      alert('Please enter a live CCTV/IP camera URL (RTSP or HTTP).')
+      return
+    }
+    try {
+      const liveConfig = {
+        ...config,
+        preview_interval: previewInterval,
+        preview_max_width: 960,
+      }
+      sendMessage({ command: 'start_stream', source: liveSource, config: liveConfig })
+    } catch (e) {
+      alert('Failed to start live stream: ' + e.message)
+    }
+  }
+
+  const stopLive = () => {
+    try {
+      sendMessage({ command: 'stop_stream' })
+    } catch (e) {
+      alert('Failed to stop live stream: ' + e.message)
     }
   }
 
@@ -179,7 +240,44 @@ const Dashboard = () => {
 
           <div className="card">
             <h2 className="card-title">Define Restricted Zones</h2>
-            <ZoneDrawer onZonesUpdate={handleZonesUpdate} initialZones={config.restricted_zones} />
+            <div className="zone-controls" style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
+              <button className="btn btn-primary" onClick={() => zoneRef.current?.startDrawing()}>
+                Draw New Zone
+              </button>
+              <button className="btn btn-secondary" onClick={() => zoneRef.current?.finishZone()}>
+                Finish Zone
+              </button>
+              <button className="btn btn-danger" onClick={() => zoneRef.current?.clearZones()}>
+                Clear All Zones
+              </button>
+              <span className="zone-info" style={{ color: '#4dabf7' }}>
+                {zoneRef.current?.isDrawing() ? 'Click on video to add points' : `${config.restricted_zones.length} zone(s) defined`}
+              </span>
+            </div>
+              <div style={{ position: 'relative', width: '100%', border: '2px solid #2a5298', borderRadius: 8, overflow: 'hidden' }}>
+                {useMjpeg && (
+                  <LiveMjpegPlayer
+                    src={`${API_BASE}/api/stream/mjpeg`}
+                    onSize={({ width, height }) => setLiveFrame((prev) => ({ ...prev, width, height }))}
+                  />
+                )}
+                <div style={{ position: 'absolute', inset: 0 }}>
+                  <ZoneDrawer
+                    ref={zoneRef}
+                    onZonesUpdate={handleZonesUpdate}
+                    initialZones={config.restricted_zones}
+                    width={liveFrame.width}
+                    height={liveFrame.height}
+                    hideControls
+                    backgroundImage={useMjpeg ? null : liveFrame.src}
+                  />
+                </div>
+                {lastAlert && (
+                  <div style={{ position: 'absolute', right: 8, bottom: 8, background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '6px 10px', borderRadius: 6 }}>
+                    Alert: {lastAlert.event_type} @ frame {lastAlert.frame_number}
+                  </div>
+                )}
+              </div>
           </div>
 
           {analysisResult && (
@@ -221,6 +319,44 @@ const Dashboard = () => {
               </div>
             </div>
           )}
+        </div>
+
+        <div className="card">
+          <h2 className="card-title">Live CCTV / IP Camera</h2>
+          <div className="config-section">
+            <div className="config-grid">
+              <div className="config-item" style={{ gridColumn: '1 / -1' }}>
+                <label>Camera URL (RTSP/HTTP)</label>
+                <input
+                  type="text"
+                  placeholder="e.g., rtsp://user:pass@ip:554/stream or http://ip:port/video"
+                  value={liveSource}
+                  onChange={(e) => setLiveSource(e.target.value)}
+                />
+              </div>
+              <div className="config-item">
+                <label>Preview Transport</label>
+                <select value={useMjpeg ? 'mjpeg' : 'ws'} onChange={(e) => setUseMjpeg(e.target.value === 'mjpeg')}>
+                  <option value="mjpeg">MJPEG (smooth)</option>
+                  <option value="ws">WebSocket frames</option>
+                </select>
+              </div>
+              <div className="config-item">
+                <label>Preview Smoothness</label>
+                <select value={previewInterval} onChange={(e) => setPreviewInterval(parseInt(e.target.value))}>
+                  <option value={1}>High (every frame)</option>
+                  <option value={2}>Medium-High (every 2nd)</option>
+                  <option value={5}>Medium (every 5th)</option>
+                  <option value={10}>Low (every 10th)</option>
+                </select>
+              </div>
+            </div>
+            <div style={{ marginTop: '12px' }}>
+              <button className="btn" onClick={startLive} disabled={liveRunning}>Start Live</button>
+              <button className="btn btn-secondary" onClick={stopLive} disabled={!liveRunning} style={{ marginLeft: '8px' }}>Stop Live</button>
+            </div>
+            <p style={{ marginTop: '8px' }}>Status: {liveRunning ? 'Running' : 'Stopped'}</p>
+          </div>
         </div>
 
         <div className="side-panel">
