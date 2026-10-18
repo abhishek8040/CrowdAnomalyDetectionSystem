@@ -1,4 +1,15 @@
-## Running the Project with Docker
+---
+title: Vigilante
+emoji: 🛡️
+colorFrom: indigo
+colorTo: red
+sdk: gradio
+app_file: app.py
+pinned: false
+license: mit
+---
+
+## Vigilante - Public Anomaly Detection System
 
 This project provides Dockerfiles for both the backend (Python) and frontend (JavaScript/Vite) applications, along with a `docker-compose.yaml` for orchestrating the services.
 
