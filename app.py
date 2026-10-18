@@ -38,16 +38,7 @@ if not model_path.exists():
 detector = PersonDetector(model_name=str(model_path))
 
 
-# ZeroGPU support for Hugging Face free GPU tier
-try:
-    import spaces
-    gpu_decorator = spaces.GPU(duration=120)
-except Exception:
-    def gpu_decorator(fn):
-        return fn
-
-
-@gpu_decorator
+# Run inference on CPU (100% free with unlimited analyses and zero daily quota restrictions)
 def process_cctv_video(
     video_file,
     nl_rule_text: str,
