@@ -1,25 +1,86 @@
-.video-player {
+.video-player-container {
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  margin-bottom: 1.5rem;
-}
-
-.video-container {
-  position: relative;
-  width: 100%;
-  background: #000;
+  background: #0f0f23;
   border-radius: 8px;
   overflow: hidden;
+  border: 2px solid #2a5298;
 }
 
-.video-element {
+.video-stage {
+  position: relative;
   width: 100%;
-  height: auto;
-  display: block;
+  max-height: 520px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.video-overlay {
+.video-media {
+  display: block;
+  max-width: 100%;
+  max-height: 520px;
+  width: auto;
+  height: auto;
+}
+
+.video-canvas-overlay {
   position: absolute;
   top: 0;
   left: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  background: #1a1a2e;
+  border-top: 1px solid #2a5298;
+  flex-wrap: wrap;
+}
+
+.btn-play {
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+}
+
+.time-display {
+  font-size: 0.85rem;
+  color: #4dabf7;
+  font-family: monospace;
+  min-width: 170px;
+}
+
+.timeline-slider {
+  flex: 1;
+  min-width: 150px;
+  accent-color: #4dabf7;
+  cursor: pointer;
+}
+
+.speed-buttons {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.btn-speed {
+  background: #0f0f23;
+  border: 1px solid #2a5298;
+  color: white;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.btn-speed.active {
+  background: #2a5298;
+  color: #4dabf7;
+  font-weight: bold;
 }

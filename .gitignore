@@ -75,8 +75,8 @@ uploads/
 temp/
 *.weights
 *.pt
-models/*.pt
-!yolov8*.pt
+!backend/yolov8*.pt
+/yolov8*.pt
 
 # Node modules
 node_modules/
@@ -92,3 +92,9 @@ build/
 # Logs
 logs/
 *.log
+
+# Databases
+*.db
+*.db-wal
+*.db-shm
+backend/data/
