@@ -75,8 +75,9 @@ uploads/
 temp/
 *.weights
 *.pt
-!backend/yolov8*.pt
-/yolov8*.pt
+*.pt.*
+backend/*.pt
+models/*.pt
 
 # Node modules
 node_modules/
